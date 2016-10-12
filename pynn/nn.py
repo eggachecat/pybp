@@ -33,8 +33,13 @@ class Layer:
 		self.size = mySize
 		self.neurons = np.zeros((mySize, 1), dtype=float) 
 		self.outputs = np.zeros((mySize, 1), dtype=float)
-		self.weight = np.ones((mySize, preSize), dtype=float)
-		self.bias = np.zeros((mySize, 1), dtype=float)
+		self.weight = np.random.random((mySize, preSize)) #np.zeros((mySize, preSize), dtype=float)
+		self.weight = 2 * self.weight - 1
+		self.bias = np.random.random((mySize, 1)) #np.zeros((mySize, 1), dtype=float)
+		self.bias = 2 * self.bias - 1
+		# self.weight = np.zeros((mySize, preSize), dtype=float)
+		# self.bias = np.zeros((mySize, 1), dtype=float)
+
 		self.nnFun = nnFun
 
 	def receiveSignal(self, signals):

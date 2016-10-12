@@ -4,11 +4,6 @@ import math
 import pylab as pl
 import numpy as np
 
-def speak():
-	print ("hello world")
-
-
-
 class BPLayer(nn.Layer):
 
 	def __init__(self, preSize, mySize, nnFun):
@@ -20,7 +15,7 @@ class BPLayer(nn.Layer):
 
 		if self.nnFun.derInY == True:
 			diags = np.copy(self.outputs)	
-			nn.MatrixOP.apply(diags, self .nnFun.derivative)
+			nn.MatrixOP.apply(diags, self.nnFun.derivative)
 		else:
 			diags = np.copy(self.neurons)
 			nn.MatrixOP.apply(diags, self.nnFun.derivative)
@@ -61,20 +56,19 @@ class BackPropagationNeuralNetwork(nn.Network):
 
 		for i in range(0, self.outputIndex)[::-1]:
 
-			preLayer = self.layers[i - 1]
 			curLayer = self.layers[i]
 			nxtLayer = self.layers[i + 1]
 
-			currSensitivity = np.copy(sensitivity);
+			nxtSensitivity = np.copy(sensitivity);
 
 			sensitivity = np.dot(
 				np.dot(
 					curLayer.getDiagDerivativeMatrix(), np.transpose(nxtLayer.weight))
-				, currSensitivity)
+				, nxtSensitivity)
 
 
-			nxtLayer.learnWeight(-1 * self.alpha * np.dot(currSensitivity, np.transpose(curLayer.outputs)))
-			nxtLayer.learnBias(-1 * self.alpha * currSensitivity)
+			nxtLayer.learnWeight(-1 * self.alpha * np.dot(nxtSensitivity, np.transpose(curLayer.outputs)))
+			nxtLayer.learnBias(-1 * self.alpha * nxtSensitivity)
 
 
 def init(alpha, sizeOfLayers, activationFunctions):
