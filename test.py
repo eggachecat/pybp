@@ -18,6 +18,24 @@ trainingData, testData = nnIO.readTrainingAndTest('hw1data.dat', 2, 800)
 
 
 
+class_O_X = []
+class_O_Y = []
+
+class_N_X = []
+class_N_Y = []
+
+data = np.loadtxt("hw1data.dat")
+
+for row in data:
+	if row[2] > 0:
+		class_O_X.append(row[0])
+		class_O_Y.append(row[1])
+	else:
+		class_N_X.append(row[0])
+		class_N_Y.append(row[1])
+
+pl.plot(class_O_X, class_O_Y, 'gs', class_N_X, class_N_Y, 'bs')
+
 alpha = 0.1
 step = 0.05
 
@@ -34,8 +52,45 @@ test_inputs = testData["inputs"]
 test_outputs = testData["outputs"]
 
 
-while(alpha < 0.99) :
+def drawLine(k, b):
+	pl.plot(class_O_X, class_O_Y, 'gs', class_N_X, class_N_Y, 'bs')
+
+	x = np.arange(0, 1, 0.1)
+	print(k, b)
+	y = k*x + b
+
+	y = 1 / (1 + np.exp(-1 * y))
+
+	pl.plot(x, y, 'rs')
+
+def drawSegment(NN):
+	weights = NN.layers[1].weight
+	bias = NN.layers[1].bias
+
+	for i in range(0,4):
+		drawLine(-1 * weights[i, 0] / weights[i, 1], -1 * bias[i, 0] / weights[i, 1])
+
+	pl.axis([0, 1, 0, 1])
+
+	pl.show()
+
+# pl.show()	
+
+while(alpha < 0.5) :
 	NN = bpnn.init(alpha, layers, afs)
+
+	# weights = NN.layers[1].weight
+	# bias = NN.layers[1].bias
+
+	# for i in range(0,4):
+	# 	drawLine(-1 * weights[i, 0] / weights[i, 1], -1 * bias[i, 0] / weights[i, 1])
+
+	# pl.axis([-2, 2, -2, 2])
+
+	# pl.show()
+		
+	# drawSegment(NN)
+
 
 	totalError = 0
 
@@ -45,7 +100,28 @@ while(alpha < 0.99) :
 
 		teacher = np.transpose(np.mat(outputs[i]))
 		NN.backPropagation(teacher - output)
+	drawSegment(NN)
+	for i in range(0, len(inputs)):
+		inputVector = np.transpose(np.mat(inputs[i]))
+		output = NN.forward(inputVector)
 
+		teacher = np.transpose(np.mat(outputs[i]))
+		NN.backPropagation(teacher - output)
+	drawSegment(NN)
+	for i in range(0, len(inputs)):
+		inputVector = np.transpose(np.mat(inputs[i]))
+		output = NN.forward(inputVector)
+
+		teacher = np.transpose(np.mat(outputs[i]))
+		NN.backPropagation(teacher - output)
+	drawSegment(NN)
+	for i in range(0, len(inputs)):
+		inputVector = np.transpose(np.mat(inputs[i]))
+		output = NN.forward(inputVector)
+
+		teacher = np.transpose(np.mat(outputs[i]))
+		NN.backPropagation(teacher - output)	
+	drawSegment(NN)
 
 
 	for i in range(0, len(test_inputs)):
