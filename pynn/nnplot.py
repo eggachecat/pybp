@@ -33,7 +33,6 @@ def drawLine(k, b, line):
 
 	global __global_X
 	y = k * __global_X + b
-	print(k, __global_X, b)
 	line.set_ydata(y)
 	pl.draw()
 
@@ -74,8 +73,6 @@ def iniGraph(NN, layerNumber, axis = [-2, 2, -2, 2], step = 0.05, lineStyle=["r-
 	numberOfLines = weight.shape[0]
 
 	__global_X = np.arange(axis[0], axis[1], step)
-
-	print(__global_X)
 
 	# init lines
 	for i in range(0, numberOfLines):
