@@ -101,5 +101,6 @@ class Network:
 		self.nnDepth = len(sizeOfLayers)
 		self.outputIndex = self.nnDepth - 1
 
+		self.sizeOfLayers = sizeOfLayers
 		
 	
