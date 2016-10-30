@@ -33,10 +33,12 @@ class Layer:
 		self.size = mySize
 		self.neurons = np.zeros((mySize, 1), dtype=float) 
 		self.outputs = np.zeros((mySize, 1), dtype=float)
-		self.weight = np.random.random((mySize, preSize)) #np.zeros((mySize, preSize), dtype=float)
-		self.weight = 2 * self.weight - 1
-		self.bias = np.random.random((mySize, 1)) #np.zeros((mySize, 1), dtype=float)
-		self.bias = 2 * self.bias - 1
+
+		magicNumber = np.sqrt(float(6) / float(preSize + mySize));
+		self.weight = (np.random.random((mySize, preSize)) - 0.5) * magicNumber  #np.zeros((mySize, preSize), dtype=float)
+		# self.weight = 2 * self.weight - 1
+		self.bias = np.zeros((mySize, 1), dtype=float) #np.zeros((mySize, 1), dtype=float)
+		# self.bias = 2 * self.bias - 1
 		# self.weight = np.zeros((mySize, preSize), dtype=float)
 		# self.bias = np.zeros((mySize, 1), dtype=float)
 
@@ -44,7 +46,22 @@ class Layer:
 
 	def receiveSignal(self, signals):
 		self.neurons = np.dot(self.weight, signals) + self.bias
+		
 		self.outputs = MatrixOP.pipe(self.neurons, self.nnFun.activate)
+		# print("neurons:")
+		# print(self.neurons)
+		# print("outputs:")
+		# print(self.outputs)
+
+	def dspreceiveSignal(self, signals):
+		self.neurons = np.dot(self.weight, signals) + self.bias
+		print("self.weight\n", self.weight)
+		print("self.neurons\n", self.neurons)
+		self.outputs = MatrixOP.pipe(self.neurons, self.nnFun.activate)
+		# print("neurons:")
+		# print(self.neurons)
+		# print("outputs:")
+		# print(self.outputs)
 
 	def getDiagDerivativeMatrix(self):
 		

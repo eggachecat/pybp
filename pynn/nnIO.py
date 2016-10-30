@@ -1,21 +1,20 @@
 import numpy as np
+import random
 
-
-def readInput(filePath, segement):
+def readInput(filePath, segement, random = False):
 	data = np.loadtxt(filePath)
 
 	inputSize = len(data[0])
+
+	if random:
+		random.shuffle(data)
 
 	inputs = np.asmatrix(data)[:, range(0, segement)]
 	outputs = np.asmatrix(data)[:, range(segement, inputSize)]
 
 	return {"inputs": inputs, "outputs": outputs}
 
-# def readTraingData():
-
-
-
-def readTrainingAndTest(filePath, segement, inputRows):
+def readTrainingAndTestData(filePath, segement, inputRows, random = False):
 	totalData = readInput(filePath, segement)
 
 	if inputRows < 1:
@@ -24,10 +23,14 @@ def readTrainingAndTest(filePath, segement, inputRows):
 	trainingData = dict()
 	testData = dict()
 
-	trainingData["inputs"] = totalData["inputs"][0:inputRows, ::]
-	testData["inputs"] = totalData["inputs"][inputRows:, ::]
+	allInputs = totalData["inputs"]
+	allOutputs = totalData["outputs"]
 
-	trainingData["outputs"] = totalData["outputs"][0:inputRows, ::]
-	testData["outputs"] = totalData["outputs"][inputRows:, ::]
+	trainingData["inputs"] = allInputs[0:inputRows, ::]
+	testData["inputs"] = allInputs[inputRows: , ::]
+
+	trainingData["outputs"] = allOutputs[0:inputRows, ::]
+	testData["outputs"] = allOutputs[inputRows:, ::]
 
 	return trainingData, testData
+
