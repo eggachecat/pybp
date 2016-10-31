@@ -17,7 +17,6 @@ afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
 # print(NN.sizeOfLayers)
 
 # nnSQLite.saveToDB(NN)
-
 while True:
 	id = int(input("id>>"))
 	NN = nnSQLite.loadFromDB(id, afs)

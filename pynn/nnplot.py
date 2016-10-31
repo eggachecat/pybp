@@ -55,7 +55,7 @@ def drawNeuron(NN, layerNumber):
 
 	pl.pause(0.00001)
 
-def iniGraph(NN, layerNumber, axis = [-2, 2, -2, 2], step = 0.05, lineStyle=["r--", "g--", "b--", "y--", "m--", "c--", "k--"]):
+def iniGraph(NN, layerNumber, axis = [-2, 2, -2, 2], step = 0.05, lineStyle=["r--", "g--", "b--", "y--", "m--", "c--", "k--", "r--"]):
 	
 	global __global_X
 	global __global_lines

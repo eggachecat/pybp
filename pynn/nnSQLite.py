@@ -1,4 +1,5 @@
 import sqlite3
+import numpy as np
 from pynn import common
 from pynn import bpnn
 
@@ -89,8 +90,8 @@ def loadFromDB(id, afs):
 
 	index = 0
 	for layer in NN.layers:
-		layer.weight = eval(exp_weight[index]["weight_str"])
-		layer.bias = eval(exp_bias[index]["bias_str"])
+		layer.weight = np.array(eval(exp_weight[index]["weight_str"]))
+		layer.bias = np.array(eval(exp_bias[index]["bias_str"]))
 		index += 1
 
 	return NN

@@ -11,16 +11,21 @@ import numpy as np
 
 ##### init data
 dataFileName = 'hw1data.dat'
-
+expClassification = "hw1-class-2861"
 alpha = 0.01
 alphaStep = 0.05
-maxAplha = 0.5
+maxAplha = 1
 
 # cycle of data set
-EPOCH = 50
+EPOCH = 100
 
+## (1, 2)
+# afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
+# layers = [2, 4, 3, 1]
+
+## (3)
 afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-layers = [2, 4, 3, 1]
+layers = [2, 8, 6, 1]
 
 NN = bpnn.init(alpha, layers, afs)
 nnplot.iniGraph(NN, 1)
@@ -35,8 +40,8 @@ inputs = trainingData["inputs"]
 outputs = trainingData["outputs"]
 
 data = nnio.readInput(dataFileName, 2)
-test_inputs = testData["inputs"]
-test_outputs = testData["outputs"]
+test_inputs = data["inputs"]
+test_outputs = data["outputs"]
 
 
 while(alpha < maxAplha):
@@ -71,7 +76,7 @@ while(alpha < maxAplha):
 		errorRate = float(totalError/len(test_inputs))
 		recordError.append(errorRate)
 		exp_note = "alpha = %f, #%d loop, total error = %d in trails = %d, errorRate = %f" % (alpha, k, totalError, len(test_inputs), errorRate)
-		exp_id = nnSQLite.saveToDB(NN, "[common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]", "hw1-class", exp_note, alpha, errorRate)
+		exp_id = nnSQLite.saveToDB(NN, "[common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]", expClassification, exp_note, alpha, errorRate)
 		print(exp_note + " at exp_id = " + str(exp_id))
 
 	pl.figure(2)
