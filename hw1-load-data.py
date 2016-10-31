@@ -55,6 +55,6 @@ def showOutputs():
 			print(NN.layers[i].outputs)
 			print("\n")
 
-showOutputs()
-# drawLines()
+# showOutputs()
+drawLines()
 # testData()

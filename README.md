@@ -2,20 +2,33 @@ pynn
 ======
 介紹
 -------
-NTU CSIE 5052 的Homework One的代码
+NTU CSIE 5052 的Homework One的代码 <br>
 实验结果记录在exp_records.db
 
 
 預安裝
 -------
-[Python 3.5.1](https://www.python.org/)
-[numpy](https://github.com/numpy/numpy)
-[matplotlib](https://github.com/matplotlib/matplotlib)
+[Python 3.5.1](https://www.python.org/) <br>
+[numpy](https://github.com/numpy/numpy)	<br>
+[matplotlib](https://github.com/matplotlib/matplotlib) <br>
 
 pynn-lib介紹
 --------
 留空
 
+测试
+-------
+## 执行
+python hw1.py
+
+## 
+
+### 若要畫某一個exp_id的neuron分割
+python hw1-load-data.py
+
+### 若要查看對於輸入，exp_id的NN反應的每層layer的輸出
+修改 hw1-load-data.py 執行 showOutputs <br>
+python hw1-load-data.py
 
 用法
 -------
