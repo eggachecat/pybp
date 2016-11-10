@@ -1,5 +1,9 @@
 import sqlite3
 import numpy as np
+import os.path
+import sys
+
+
 from pynn import common
 from pynn import bpnn
 
@@ -30,9 +34,16 @@ def iniSQLite(dbPath):
 
 	global __conn, __cursor
 
+	newDB = False
+	if not os.path.isfile(dbPath):
+		newDB = True
+	
 	__conn = sqlite3.connect(dbPath)
 	__conn.row_factory = sqlite3.Row
 	__cursor = __conn.cursor()
+
+	if newDB:
+		createTable()
 
 
 def saveToDB(NN, act_fun, exp_category, exp_note, alpha, err_rate):

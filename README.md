@@ -19,16 +19,16 @@ pynn-lib介紹
 测试
 -------
 ### 执行
-python hw1.py
+python -m unittest hw1.py
 
 ## 
 
 ### 若要畫某一個exp_id的neuron分割
-python hw1-load-data.py
+python -m unittest hw1-load-data.py
 
 ### 若要查看對於輸入，exp_id的NN反應的每層layer的輸出
 修改 hw1-load-data.py 執行 showOutputs <br>
-python hw1-load-data.py
+python -m unittest hw1-load-data.py
 
 用法
 -------
