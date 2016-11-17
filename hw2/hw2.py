@@ -1,4 +1,4 @@
-from pynn import bpnn
+from pynn import somnn
 from pynn import nn
 from pynn import common
 from pynn import nnio
@@ -19,40 +19,39 @@ classFilePath = os.path.join(os.path.dirname(__file__), "hw2class.dat")
 totalFilePath = os.path.join(os.path.dirname(__file__), "total.dat")
 
 
-
-PtFile = open(PtFilePath).readlines()
-classFile = open(classFilePath).readlines()
-file = open(totalFilePath, "w")
+dataSet = nnio.mergeFeatureAndClass(PtFilePath, classFilePath)
 
 
-for i in range(0, 100):
-	content = str(classFile[i])
-	binStr = content.replace('\t', '')
-	file.write(PtFile[i].replace('\n', '') + " " + str(int(binStr, 2)) + "\n")
+# PtFile = open(PtFilePath).readlines()
+# classFile = open(classFilePath).readlines()
+# file = open(totalFilePath, "w")
 
-file.close()
+
+# for i in range(0, 100):
+# 	content = str(classFile[i])
+# 	binStr = content.replace('\t', '')
+# 	file.write(PtFile[i].replace('\n', '') + " " + str(int(binStr, 2)) + "\n")
+
+# file.close()
 
 
 
 expClassification = "hw1-class-2861"
-alpha = 0.01
-alphaStep = 0.05
-maxAplha = 1
+attRate = 0.01
+repRate = 0.1
 
 # cycle of data set
-EPOCH = 100
+EPOCH = 10
 
-## (1, 2)
-# afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-# layers = [2, 4, 3, 1]
 
-## (3)
-afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-layers = [2, 8, 6, 1]
+afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
+layers = [2, 5, 5, 5, 5, 5]
 
-NN = bpnn.init(alpha, layers, afs)
-nnplot.iniGraph(NN, 1)
-nnplot.drawData(np.loadtxt(totalFilePath), True)
+NN = somnn.init(attRate, repRate, layers, afs)
+# nnplot.iniGraph(NN, 1)
+# nnplot.drawObject(dataSet, True)
+
+NN.train(dataSet)
 
 # while True:
 # 	pass

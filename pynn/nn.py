@@ -19,7 +19,7 @@ class MatrixOP:
 			x[...] = fn(x)
 
 		return newMatrix
-
+ 
 class ActivationFunction:
 	def __init__(self, activate, derInY, derivative):
 		self.activate = activate
@@ -89,7 +89,7 @@ class Layer:
 
 class Network:
 	"""NN"""
-	def __init__(self, alpha, sizeOfLayers, activationFunctions):
+	def __init__(self, sizeOfLayers, activationFunctions):
 
 		""" sizeOfLayers 
 			#0 -> input size
@@ -97,7 +97,8 @@ class Network:
 			#last -> output size
 		"""
 
-		self.alpha = alpha
+
+		# L
 		self.nnDepth = len(sizeOfLayers)
 		self.outputIndex = self.nnDepth - 1
 

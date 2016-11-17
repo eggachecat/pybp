@@ -14,6 +14,36 @@ def readInput(filePath, segement, random = False):
 
 	return {"inputs": inputs, "outputs": outputs}
 
+def mergeFeatureAndClass(featurePath, classPath, inputRows = 0, random = False):
+	featureData = np.loadtxt(featurePath)
+	classData = open(classPath).readlines()
+
+	if len(featureData) != len(classData):
+		print("feature and class data are illeagel")
+		exit(0)
+
+	catCounter = 0
+	catList = dict()
+
+	mergedData = []
+
+	for i in range(0,len(featureData)):
+
+		if classData[i] not in catList:
+			catList[classData[i]] = catCounter
+			catCounter += 1
+
+		mergedData.append({
+			"input": np.asmatrix(featureData[i]),
+			"category": catList[classData[i]]
+		})
+
+	return mergedData
+
+		
+
+
+
 def readTrainingAndTestData(filePath, segement, inputRows, random = False):
 	totalData = readInput(filePath, segement)
 
