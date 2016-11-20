@@ -8,19 +8,27 @@ global __global_X
 global __global_lines
 
 
-def drawObject(objList, pause, style = ["rs", "gs", "bs", "r^", "g^", "b^"]):
+def drawObject(objList, pause, style = ["rs", "gs", "bs", "ks", "ms", "r^", "g^", "b^", "k^", "m^", "ro", "go", "bo", "ko", "mo"]):
+
 
 	for obj in objList:
 		cor = obj["input"]
+
 		try:
 			pl.plot(cor[0, 0], cor[0, 1], style[obj["category"]])
 		except IndexError:
 			print("The length of color-style-array smaller than the number of categories!! Please specify the color-style-array!!")
 			exit()
 
-	if pause:
-		pl.pause(0)
+	if not pause < 0:
+		pl.pause(pause)
+	else:
+		pass
 
+def clf():
+	pl.clf()
+	pl.ylim([-2,2])
+	pl.xlim([-2,2])
 
 def drawData(data, pause = False, classIndex = 2, style = ["rs", "gs", "bs", "r^", "g^", "b^"]):
 

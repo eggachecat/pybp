@@ -22,7 +22,7 @@ alphaStep = 0.05
 maxAplha = 1
 
 # cycle of data set
-EPOCH = 100
+EPOCH = 500
 
 ## (1, 2)
 # afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
@@ -30,7 +30,7 @@ EPOCH = 100
 
 ## (3)
 afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-layers = [2, 8, 6, 1]
+layers = [2, 4, 3, 1]
 
 NN = bpnn.init(alpha, layers, afs)
 nnplot.iniGraph(NN, 1)

@@ -37,15 +37,15 @@ dataSet = nnio.mergeFeatureAndClass(PtFilePath, classFilePath)
 
 
 expClassification = "hw1-class-2861"
-attRate = 0.1
-repRate = 0.2
+attRate = 0.05
+repRate = 0.1
 
 # cycle of data set
 EPOCH = 1000
 
 
 afs = [common.input, common.ac_tanh(1), common.ac_tanh(5), common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-layers = [2, 5, 5, 5, 5, 5, 1]
+layers = [2, 2, 5, 5, 5, 5, 1]
 
 NN = somnn.init(attRate, repRate, layers, afs)
 # NN.layers[1].weight = np.ones((5,2))
@@ -54,6 +54,8 @@ NN = somnn.init(attRate, repRate, layers, afs)
 nnplot.iniGraph(NN, 1)
 # nnplot.clf()
 nnplot.drawObject(dataSet, -1)
+
+style = ["rs", "gs", "bs", "ks", "ms"]
 
 for trainLayerIndex in range(1, 2):
 	print("to layer", trainLayerIndex)
@@ -66,21 +68,28 @@ for trainLayerIndex in range(1, 2):
 		pairInt = dict()
 		pairCounter = 0
 
-		for pair in tmpDataSet:
-			result =  np.transpose(NN.forward(np.transpose(pair["input"]), trainLayerIndex))
-			result = (result > 0).astype(int)[0]
-			result = ''.join(map(str, result))
-			result = int(result, 2)
-
-			if not result in pairInt.keys():
-				pairInt[result] = pairCounter
-				pairCounter += 1
-
-			pair["category"] = pairInt[result]
-
 		pl.figure(2)
 		nnplot.clf()
-		nnplot.drawObject(tmpDataSet, 0.0001)
+
+		for i in range(0, len(tmpDataSet)):
+
+			pair = tmpDataSet[i]
+			result =  np.transpose(NN.forward(np.transpose(pair["input"]), trainLayerIndex))
+			# result = (result > 0).astype(int)[0]
+			# result = ''.join(map(str, result))
+			# result = int(result, 2)
+
+			# if not result in pairInt.keys():
+			# 	pairInt[result] = pairCounter
+			# 	pairCounter += 1
+
+			# pair["category"] = pairInt[result]
+
+			pl.plot(result[0, 0], result[0, 1], style[i])
+			pl.plot(pair["input"][0, 0], pair["input"][0, 1], style[i])
+
+
+		# nnplot.drawObject(tmpDataSet, 0.0001)
 		input("enter.....")
 		nnplot.clf()
 
