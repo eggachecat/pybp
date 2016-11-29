@@ -19,10 +19,10 @@ SQLiteDB = os.path.join(os.path.dirname(__file__), SQLiteDB)
 expClassification = "hw1-class-2861"
 alpha = 0.01
 alphaStep = 0.05
-maxAplha = 1
+maxAplha = 0.1
 
 # cycle of data set
-EPOCH = 500
+EPOCH = 10
 
 ## (1, 2)
 # afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
@@ -66,7 +66,7 @@ while(alpha < maxAplha):
 		# update every cycle of trainig data
 		nnplot.drawNeuron(NN, 1)
 			
-
+  
 		for i in range(0, len(test_inputs)):
 
 			inputVector = np.transpose(np.mat(test_inputs[i]))
@@ -93,20 +93,20 @@ while(alpha < maxAplha):
 	alpha += alphaStep
 
 nnSQLite.closeDB()
-nnSQLite.iniSQLite("exp_records.db")
+# nnSQLite.iniSQLite("exp_records.db")
 
-while True:
-	id = int(input("id>>"))
-	NN = nnSQLite.loadFromDB(id, afs)
+# while True:
+# 	id = int(input("id>>"))
+# 	NN = nnSQLite.loadFromDB(id, afs)
 
-	while True:
-		x = float(input("X>>"))
-		y = float(input("Y>>"))
-		inputVector = [[x], [y]]
-		output = NN.forward(inputVector)
-		print("output>>", output)
-		c= input("change id ?>>")
-		c = str.upper(c)
-		if c == "Y" or c == "YES":
-			break
-nnSQLite.closeDB()
+# 	while True:
+# 		x = float(input("X>>"))
+# 		y = float(input("Y>>"))
+# 		inputVector = [[x], [y]]
+# 		output = NN.forward(inputVector)
+# 		print("output>>", output)
+# 		c= input("change id ?>>")
+# 		c = str.upper(c)
+# 		if c == "Y" or c == "YES":
+# 			break
+# nnSQLite.closeDB()

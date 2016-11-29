@@ -1,4 +1,5 @@
-from . import nn
+from pynn import nn
+from pynn import nnaf
 
 import math
 import pylab as pl
@@ -7,6 +8,7 @@ import numpy as np
 
 import itertools
 
+import logging
 
 
 class SOMLayer(nn.Layer):
@@ -24,7 +26,7 @@ class SOMLayer(nn.Layer):
 			nn.MatrixOP.apply(diags, self.nnFun.derivative)
 		else:
 			diags = np.copy(self.neurons)
-			nn.MatrixOP.apply(diags, self.nnFun.derivative)
+			nn.MatrixOP.apply(diags, self.nnFun.derivative) 
 
 		if diags.shape == (1, 1):
 			return diags
@@ -36,10 +38,15 @@ class SOMLayer(nn.Layer):
 class SelfOrganizingMapNeuralNetwork(nn.Network):
 
 
-	def __init__(self, attRate, repRate, sizeOfLayers, activationFunctions):
+	def __init__(self, nnConfig):
+
+		activationFunctions = nnaf.generateActivationFunctions(nnConfig["af_types"])
+		sizeOfLayers = nnConfig["layers"]
+
 		nn.Network.__init__(self, sizeOfLayers, activationFunctions)
-		self.attRate = attRate
-		self.repRate = repRate
+		self.attRate = nnConfig["attRate"]
+		self.repRate = nnConfig["repRate"]
+		self.af_types = nnConfig["af_types"]
 
 		self.layers = [SOMLayer(1, sizeOfLayers[0], activationFunctions[0])]
 		for i in range(1, self.nnDepth):
@@ -63,8 +70,8 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 		rowNum = len(vector_r)
 		colNum = len(vector_c)
 
-		# print(vector_r)
-		# print(vector_c)
+		# logging.debug(vector_r)
+		# logging.debug(vector_c)
 
 		max = float("-inf")
 		min = float("inf")
@@ -76,7 +83,10 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 		for r in range(0, rowNum):
 			for c in range(0, colNum):
 				difference = vector_r[r] - vector_c[c]
-				distance = np.sum(np.square(difference))
+				# distance = np.sum(np.square(difference))
+
+				# hamming distance
+				distance = np.sum(np.absolute(difference))
 				distanceMatrix[r, c] = np.absolute(distance)
 
 				if(distance > max):
@@ -87,18 +97,38 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 						min = distance
 						minTuple = (r, c, min)
 
-		print("\nThe distance matrix is\n")
-		print(distanceMatrix)
+		logging.debug("\nThe distance matrix is\n")
+		logging.debug(distanceMatrix)
 
 		return maxTuple, minTuple
- 
+
+
+	def toDict(self):
+
+		jsonObj = dict()
+		jsonObj["weightArr"] = []
+		jsonObj["biasArr"] = []
+		jsonObj["layer_info"] = str(self.sizeOfLayers)
+		jsonObj["af_types"] = str(self.af_types)
+
+		for layer in self.layers:
+			weight_str = str((layer.weight).tolist())
+			bias_str = str((layer.bias).tolist())
+
+			jsonObj["weightArr"].append(weight_str)
+			jsonObj["biasArr"].append(bias_str)
+
+		jsonObj["attRate"] = self.attRate
+		jsonObj["repRate"] = self.repRate
+
+		return jsonObj
 
 
 
 	# two class
 	def train(self, dataSet, trainLayerIndex):
 
-		# print("================================================================================================")
+		# logging.debug("================================================================================================")
 		patterns = dict()
 		# trainLayerIndex = 1
 
@@ -107,17 +137,19 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 		preLayer = self.layers[trainLayerIndex - 1]
 		cur_inputs_T = np.transpose(preLayer.outputs)
 
+		returnObj = dict()
 
-		print("current weight is:")
-		print(curlayer.weight)
-		print("current bias is:")
-		print(curlayer.bias, "\n")
+
+		logging.debug("current weight is:")
+		logging.debug(curlayer.weight)
+		logging.debug("current bias is:")
+		logging.debug(curlayer.bias, "\n")
 
 
 		patterns_input_dict = dict()
 
 
-		print("IN THE forward SECTION:============================================================")
+		logging.debug("IN THE forward SECTION:============================================================")
 		for pair in dataSet:
 			key = pair["category"]
 			if key not in patterns:
@@ -125,30 +157,31 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 
 			output = self.forward(np.transpose(pair["input"]), trainLayerIndex)
 
-			print("INPUT: ", pair["input"])
-			print("OUTPUT: ", np.transpose(output), "\n")
+			logging.debug("INPUT: %s", str(pair["input"]))
+			logging.debug("OUTPUT: %s \n", str(np.transpose(output)))
 
 
 
 			patterns_input_dict[output.tostring()] = np.transpose(preLayer.outputs)
-			# print(output)
+			# logging.debug(output)
 			patterns[key].append(output)
 
 
 
-		print("IN THE training SECTION====================================================================")
+		logging.debug("IN THE training SECTION====================================================================")
+		logging.debug("------------------------------------------")
 
 		# combination of catogries!!
 		for keys in list(itertools.combinations_with_replacement(list(patterns.keys()), 2)):
-			# print(keys, patterns[keys[0]], patterns[keys[1]])
+			# logging.debug(keys, patterns[keys[0]], patterns[keys[1]])
 
-			print("for key: ", keys[0], "-", keys[1])
+			logging.debug("for key: %d, %d", keys[0], keys[1])
 
 			distanceTuple = self.createDistanceMatrix(patterns[keys[0]], patterns[keys[1]])
 
 
 			the_same_category = (keys[0] == keys[1])
-			# print(keys[0], keys[1])
+			# logging.debug(keys[0], keys[1])
 
 			# same class
 			if the_same_category:
@@ -156,33 +189,35 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 				## min the max distance
 				targetIndices = distanceTuple[0]
 				multiplier = self.attRate
+				logging.debug("max distance: %f" % (targetIndices[2]))
 
 			else:
 				# otherwise
 				targetIndices = distanceTuple[1]
 				multiplier = -1 * self.repRate
+				logging.debug("min distance:" %(targetIndices[2]))
 
-
-			print("\nThe critical vectors are: \n")
+			logging.debug("\nThe critical vectors are: \n")
 
 
 			# the two bad-asses
 			vector_p = patterns[keys[0]][targetIndices[0]]
 			vector_q = patterns[keys[1]][targetIndices[1]]
 
-			print(np.transpose(vector_p))
-			print("\nand\n")
-			print(np.transpose(vector_q))
+			logging.debug(str(np.transpose(vector_p)))
+			logging.debug("\nand\n")
+			logging.debug(str(np.transpose(vector_q)))
 
+			returnObj[keys] = targetIndices[2]
 
 			# if the_same_category:
-			# 	print("same class:")
-			# 	print(tmp_dict[vector_p.tostring()])
-			# 	print( tmp_dict[vector_q.tostring()] )
+			# 	logging.debug("same class:")
+			# 	logging.debug(tmp_dict[vector_p.tostring()])
+			# 	logging.debug( tmp_dict[vector_q.tostring()] )
 			# else:
-			# 	print("not same class:")
-			# 	print(tmp_dict[vector_p.tostring()])
-			# 	print(tmp_dict[vector_q.tostring()] )
+			# 	logging.debug("not same class:")
+			# 	logging.debug(tmp_dict[vector_p.tostring()])
+			# 	logging.debug(tmp_dict[vector_q.tostring()] )
 
 
 			# input("enter.....")
@@ -196,73 +231,82 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 
 			diag_q = np.copy(vector_q)
 			nn.MatrixOP.apply(diag_q, curlayer.nnFun.derivative)
+
+
 			######################### assume in Y form for now - end #########################
 
-			## this is the matrix whose diag are the derivatives of neurons
-			diag_q = np.diag(np.squeeze(np.asarray(diag_q)))
-			diag_p = np.diag(np.squeeze(np.asarray(diag_p)))
 
-			print("\nTheir diag-directive Matrices are: \n")
-			print(diag_p)
-			print("\nand\n")			
-			print(diag_q)
+
+
+			## this is the matrix whose diag are the derivatives of neurons
+
+			if not diag_p.shape == (1, 1):
+				diag_q = np.diag(np.squeeze(np.asarray(diag_q)))
+				diag_p = np.diag(np.squeeze(np.asarray(diag_p)))
+
+			logging.debug("\nTheir diag-directive Matrices are: \n")
+			logging.debug(str(diag_p))
+			logging.debug("\nand\n")			
+			logging.debug(str(diag_q))
 
 			# sensitivity = np.dot(diag_p - diag_q, vector_p - vector_q)
 
-			print("\nTheir difference Matrices are: \n")
-			print(vector_p - vector_q)
+			logging.debug("\nTheir difference Matrices are: \n")
+			logging.debug(str(vector_p - vector_q))
 
 			sensitivity_p = np.dot(diag_p, vector_p - vector_q)
 			sensitivity_q = np.dot(diag_q, vector_p - vector_q)
 
-			print("\nTheir sensitivity Matrices are: \n")
-			print(sensitivity_p)
-			print("\nand\n")
-			print(sensitivity_q)
+			logging.debug("\nTheir sensitivity Matrices are: \n")
+			logging.debug(str(sensitivity_p))
+			logging.debug("\nand\n")
+			logging.debug(str(sensitivity_q))
 
-			print("\nTheir sensitivity In-flow are: \n")
-			print(patterns_input_dict[vector_p.tostring()])
-			print("\nand\n")
-			print(patterns_input_dict[vector_q.tostring()])
+			logging.debug("\nTheir sensitivity In-flow are: \n")
+			logging.debug(str(patterns_input_dict[vector_p.tostring()]))
+			logging.debug("\nand\n")
+			logging.debug(str(patterns_input_dict[vector_q.tostring()]))
 
 
-			# print(sensitivity_p, "\n", patterns_input_dict[vector_p.tostring()])
-			# print(sensitivity_q, "\n", patterns_input_dict[vector_q.tostring()])
+			# logging.debug(sensitivity_p, "\n", patterns_input_dict[vector_p.tostring()])
+			# logging.debug(sensitivity_q, "\n", patterns_input_dict[vector_q.tostring()])
 
 			adjust_p = np.dot(sensitivity_p, patterns_input_dict[vector_p.tostring()])
 			adjust_q = np.dot(sensitivity_q, patterns_input_dict[vector_q.tostring()])
 
-			print("\nTheir jusr Matrices are: \n")
-			print(adjust_p)
-			print("\nand\n")
-			print(adjust_q)
+			logging.debug("\nTheir jusr Matrices are: \n")
+			logging.debug(str(adjust_p))
+			logging.debug("\nand\n")
+			logging.debug(str(adjust_q))
 
 			updateWeight = -1 * multiplier * (adjust_p - adjust_q)
 
 			updateBias = -1 * multiplier * (sensitivity_p - sensitivity_q)
 
-			print("\nSO The weight updated value is:\n")
-			print(updateWeight)
-			print("\nSO The bias updated value is:\n")
-			print(updateBias)
+			logging.debug("\nSO The weight updated value is:\n")
+			logging.debug(str(updateWeight))
+			logging.debug("\nSO The bias updated value is:\n")
+			logging.debug(str(updateBias))
 
 
-		# 	print(updateWeight)
-		# 	print(updateBias)
+		# 	logging.debug(updateWeight)
+		# 	logging.debug(updateBias)
 
-		# 	print("+++++++++++++++++++++++++")
+		# 	logging.debug("+++++++++++++++++++++++++")
 
 			curlayer.learnWeight(updateWeight)
 			curlayer.learnBias(updateBias)
 
-		print("after this itr, the weight is now:")
-		print(curlayer.weight)
-		print("the bias is now:")
-		print(curlayer.bias)
-		print("================================================================================================")
+		logging.debug("after this itr, the weight is now:")
+		logging.debug(str(curlayer.weight))
+		logging.debug("the bias is now:")
+		logging.debug(str(curlayer.bias))
+		logging.debug("================================================================================================")
+
+		return returnObj
 
 
 
 
-def init(attRate, repRate, sizeOfLayers, activationFunctions):
-	return SelfOrganizingMapNeuralNetwork(attRate, repRate, sizeOfLayers, activationFunctions)
+def init(nnConfig):
+	return SelfOrganizingMapNeuralNetwork(nnConfig)

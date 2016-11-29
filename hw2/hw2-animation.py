@@ -12,11 +12,11 @@ import os
 
 import copy
 
-
+import logging, sys
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 ##### prepare data
-PtFilePath = os.path.join(os.path.dirname(__file__), "hw2pt-simple.dat")
-classFilePath = os.path.join(os.path.dirname(__file__), "hw2class-simple.dat")
-totalFilePath = os.path.join(os.path.dirname(__file__), "total.dat")
+PtFilePath = os.path.join(os.path.dirname(__file__), "hw2pt-2d.dat")
+classFilePath = os.path.join(os.path.dirname(__file__), "hw2class-2d.dat")
 
 
 dataSet = nnio.mergeFeatureAndClass(PtFilePath, classFilePath)
@@ -37,8 +37,8 @@ dataSet = nnio.mergeFeatureAndClass(PtFilePath, classFilePath)
 
 
 expClassification = "hw1-class-2861"
-attRate = 0.05
-repRate = 0.1
+attRate = 0.01
+repRate = 1
 
 # cycle of data set
 EPOCH = 1000
@@ -55,11 +55,23 @@ nnplot.iniGraph(NN, 1)
 # nnplot.clf()
 nnplot.drawObject(dataSet, -1)
 
-style = ["rs", "gs", "bs", "ks", "ms"]
+# style = ["rs", "gs", "bs", "ks", "ro", "go", "bo", "ko", "r^", "g^", "b^", "k^"]
 
+style = nnplot.__shuffle_colors
+
+pl.figure(2)
+pl.ylim([-2,2])
+pl.xlim([-2,2])
+for i in range(0, len(dataSet)):
+	pair = dataSet[i]
+	pl.scatter(pair["input"][0, 0], pair["input"][0, 1], c=style[i])
+
+pl.figure(3)
 for trainLayerIndex in range(1, 2):
 	print("to layer", trainLayerIndex)
 	for x in range(1, EPOCH):
+
+		# nnplot.drawNeuron(NN, 1)
 		NN.train(dataSet, trainLayerIndex)
 
 
@@ -68,7 +80,6 @@ for trainLayerIndex in range(1, 2):
 		pairInt = dict()
 		pairCounter = 0
 
-		pl.figure(2)
 		nnplot.clf()
 
 		for i in range(0, len(tmpDataSet)):
@@ -85,13 +96,15 @@ for trainLayerIndex in range(1, 2):
 
 			# pair["category"] = pairInt[result]
 
-			pl.plot(result[0, 0], result[0, 1], style[i])
-			pl.plot(pair["input"][0, 0], pair["input"][0, 1], style[i])
+			pl.scatter(result[0, 0], result[0, 1], c=style[i])
+			# pl.plot(pair["input"][0, 0], pair["input"][0, 1], style[i])
 
 
 		# nnplot.drawObject(tmpDataSet, 0.0001)
 		input("enter.....")
 		nnplot.clf()
+
+		# pl.figure(2)
 
 # counter = 0
 # correct = 0

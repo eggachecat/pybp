@@ -1,6 +1,7 @@
 from pynn import somnn
 from pynn import nn
 from pynn import common
+from pynn import nnaf
 from pynn import nnio
 from pynn import nnplot
 from pynn import nnSQLite
@@ -10,100 +11,188 @@ import pylab as pl
 import numpy as np
 import os
 
+import time
 import copy
 
+import logging, sys
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+
+
+dataset_name = "hw2"
 
 ##### prepare data
-PtFilePath = os.path.join(os.path.dirname(__file__), "hw2pt-simple.dat")
-classFilePath = os.path.join(os.path.dirname(__file__), "hw2class-simple.dat")
-totalFilePath = os.path.join(os.path.dirname(__file__), "total.dat")
+PtFilePath = os.path.join(os.path.dirname(__file__), "hw2pt.dat")
+classFilePath = os.path.join(os.path.dirname(__file__), "hw2class.dat")
+
+SQLiteDB = "exp_all_in_one_records.db"
+SQLiteDB = os.path.join(os.path.dirname(__file__), SQLiteDB)
+nnSQLite.iniGeneralSQLite(SQLiteDB)
+
+
 
 
 dataSet = nnio.mergeFeatureAndClass(PtFilePath, classFilePath)
 
-
-# PtFile = open(PtFilePath).readlines()
-# classFile = open(classFilePath).readlines()
-# file = open(totalFilePath, "w")
-
-
-# for i in range(0, 100):
-# 	content = str(classFile[i])
-# 	binStr = content.replace('\t', '')
-# 	file.write(PtFile[i].replace('\n', '') + " " + str(int(binStr, 2)) + "\n")
-
-# file.close()
-
-
-
-expClassification = "hw1-class-2861"
-attRate = 0.1
-repRate = 0.2
-
 # cycle of data set
-EPOCH = 1000
+# epoch = 5000
 
 
-afs = [common.input, common.ac_tanh(1), common.ac_tanh(5), common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-layers = [2, 5, 5, 5, 5, 5, 1]
-
-NN = somnn.init(attRate, repRate, layers, afs)
-# NN.layers[1].weight = np.ones((5,2))
+def test(nnConfig, epoch):
 
 
-nnplot.iniGraph(NN, 1)
-# nnplot.clf()
-nnplot.drawObject(dataSet, -1)
+	sizeOfLayers = len(nnConfig["layers"])
 
-for trainLayerIndex in range(1, 2):
-	print("to layer", trainLayerIndex)
-	for x in range(1, EPOCH):
-		NN.train(dataSet, trainLayerIndex)
+	timestr = time.strftime("%Y%m%d-%H%M%S")
+	recordDir = os.path.join(os.path.dirname(__file__ ) + "\exp-figures\\")
+	expDir = os.path.join(recordDir + timestr)
+
+	if not os.path.exists(expDir):
+	    os.makedirs(expDir)
+	JsonPath = os.path.join(expDir, "config.json")
 
 
-		tmpDataSet = copy.deepcopy(dataSet)
+	NN = somnn.init(nnConfig)
+	ini_nn_dict = NN.toDict() 
 
-		pairInt = dict()
-		pairCounter = 0
+	outputIndex = sizeOfLayers - 1
+	initialErrorRate = calculateErrorRate(NN, dataSet, outputIndex)
 
-		for pair in tmpDataSet:
-			result =  np.transpose(NN.forward(np.transpose(pair["input"]), trainLayerIndex))
-			result = (result > 0).astype(int)[0]
-			result = ''.join(map(str, result))
-			result = int(result, 2)
 
-			if not result in pairInt.keys():
-				pairInt[result] = pairCounter
-				pairCounter += 1
 
-			pair["category"] = pairInt[result]
+	nnplot.iniGraph(NN, 1, ion = False)
+	nnplot.drawObject(dataSet, -1)
 
-		pl.figure(2)
-		nnplot.clf()
-		nnplot.drawObject(tmpDataSet, 0.0001)
-		input("enter.....")
-		nnplot.clf()
 
-# counter = 0
-# correct = 0
-# for pair in tmpDataSet:
-# 	counter += 1
-# 	result =  np.transpose(NN.forward(np.transpose(pair["input"]), 6))
-# 	result = result > 0
+	for trainLayerIndex in range(1, sizeOfLayers):
+		# print("to layer", trainLayerIndex)
 
-# 	# print(pair["category"], result[0,0])
-# 	if(bool(pair["category"]) ==  result[0,0]):
-# 		correct += 1
+		diffCurve = dict()
 
-# print(counter, correct)
+		for x in range(0, epoch):
+			diffObj = NN.train(dataSet, trainLayerIndex)
 
-		# print("weight", NN.layers[trainLayerIndex].weight)
-		# nnplot.drawObject(dataSet, -1)
-		# nnplot.drawObject(tmpDataSet, 0.0001, ["r^", "g^", "b^"])
-		# nnplot.clf()
-		# nnplot.drawObject(dataSet, False)
+			for key, value in diffObj.items():
+				if not key in diffCurve:
+					diffCurve[key] = []
 
-input("enter.....")
+				diffCurve[key].append(value)
 
-# while True:
-# 	pass
+
+			if x % 10 == 0:
+				tmpDataSet = copy.deepcopy(dataSet)
+
+				pairInt = dict()
+				pairCounter = 0
+
+				for pair in tmpDataSet:
+					result =  np.transpose(NN.forward(np.transpose(pair["input"]), trainLayerIndex))
+					result = (result > 0).astype(int)[0]
+					result = ''.join(map(str, result))
+					result = int(result, 2)
+
+					if not result in pairInt.keys():
+						pairInt[result] = pairCounter
+						pairCounter += 1
+
+					pair["category"] = pairInt[result]
+
+				pl.figure(1 + trainLayerIndex)
+				# nnplot.clf()
+				nnplot.drawObject(tmpDataSet, -1)
+				# input("enter.....")
+				# nnplot.clf()
+
+		ctr = 0
+		for key, yArr in diffCurve.items():
+			pl.figure(ctr + 2 * sizeOfLayers, figsize=(18.0, 12.0))
+
+			# color index added to due to hope of easy-distinguished
+			pl.plot(range(1, epoch + 1), yArr, label='$Layer {i}$'.format(i = trainLayerIndex), color = nnplot.__shuffle_colors[trainLayerIndex])
+			pl.title('epoch - Difference between ' + str(key))
+			pl.ylabel('Difference')
+			pl.legend(loc='upper center', bbox_to_anchor=(0.5, -0.02), fancybox=True, shadow=True, ncol = 10)
+
+			ctr += 1
+
+	# nnio.saveResultToJson(JsonPath, NN.toJson())
+
+
+
+
+	for x in range(2, sizeOfLayers + 1):
+		pl.figure(x)
+		figPath = os.path.join(expDir, "layer-%d.png"%(x-1))
+		pl.savefig(figPath)
+		pl.close()
+
+	ctr = 0
+	for key, yArr in diffCurve.items():
+		pl.figure(ctr + 2 * sizeOfLayers)
+		figPath = os.path.join(expDir, "%s.png"%(str(key)))
+		pl.savefig(figPath)
+		pl.close()
+		ctr += 1
+
+	errorRate = calculateErrorRate(NN, dataSet, outputIndex)
+	print(initialErrorRate, errorRate)
+	exp_note = timestr
+	exp_id = nnSQLite.saveToGeneralDB(NN.toDict(), ini_nn_dict, initialErrorRate, errorRate, epoch, "classification", dataset_name, exp_note, timestr)
+
+
+def calculateErrorRate(NN, dataSet, outputLayer):
+	errCtr = 0
+	ctr = 0
+	for pair in dataSet:
+		ctr += 1
+		key = pair["category"]
+		output = NN.forward(np.transpose(pair["input"]), outputLayer)
+		result = (output > 0).astype(int)[0]
+		result = ''.join(map(str, result))
+		result = int(result, 2)
+		if not result == key:
+			errCtr += 1
+
+	errorRate = errCtr / ctr
+	errorRate = min(errorRate, 1 - errorRate)
+
+	return errorRate
+
+
+
+
+af_types = [("purelin", 1), ("tanh", 1), 15]
+
+
+
+epochs = [2]
+times = 1
+layersBox = [[2, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]]
+step = (0.0001, 1)
+
+
+for epoch in epochs:
+	for layers in layersBox:
+		for x in range(0, times):
+			nnConfig = {
+				"attRate": step[0],
+				"repRate": step[1],
+				"af_types": af_types,
+				"layers": layers
+			}
+			test(nnConfig, epoch)
+
+
+
+# for layers in layersBox:
+# 	for step in stepBox:
+
+# 		nnConfig = {
+# 			"attRate": step[0],
+# 			"repRate": step[1],
+# 			"af_types": af_types,
+# 			"layers": layers
+# 		}
+# 		print(nnConfig)
+# 		test(nnConfig)
+
+nnSQLite.closeDB()

@@ -1,5 +1,7 @@
 import numpy as np
 import random
+import json
+
 
 def readInput(filePath, segement, random = False):
 	data = np.loadtxt(filePath)
@@ -64,3 +66,11 @@ def readTrainingAndTestData(filePath, segement, inputRows, random = False):
 
 	return trainingData, testData
 
+
+def saveResultToJson(path, nnDict, note = None):
+
+	if note:
+		nnDict["note"] = note
+
+	with open(path, 'w') as fp:
+	    json.dump(nnDict, fp)
