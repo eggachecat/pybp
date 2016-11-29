@@ -1,0 +1,5 @@
+# igonore database
+*.db
+
+# igonre figures
+exp_figures/

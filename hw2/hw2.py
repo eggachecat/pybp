@@ -24,7 +24,7 @@ dataset_name = "hw2"
 PtFilePath = os.path.join(os.path.dirname(__file__), "hw2pt.dat")
 classFilePath = os.path.join(os.path.dirname(__file__), "hw2class.dat")
 
-SQLiteDB = "exp_all_in_one_records.db"
+SQLiteDB = "exp_records.db"
 SQLiteDB = os.path.join(os.path.dirname(__file__), SQLiteDB)
 nnSQLite.iniGeneralSQLite(SQLiteDB)
 
@@ -43,7 +43,7 @@ def test(nnConfig, epoch):
 	sizeOfLayers = len(nnConfig["layers"])
 
 	timestr = time.strftime("%Y%m%d-%H%M%S")
-	recordDir = os.path.join(os.path.dirname(__file__ ) + "\exp-figures\\")
+	recordDir = os.path.join(os.path.dirname(__file__ ) + "\exp_figures\\")
 	expDir = os.path.join(recordDir + timestr)
 
 	if not os.path.exists(expDir):
