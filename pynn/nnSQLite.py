@@ -2,7 +2,7 @@ import sqlite3
 import numpy as np
 import os.path
 import sys
-
+import json
 
 from pynn import common
 from pynn import bpnn
@@ -111,8 +111,11 @@ def loadFromDB(id, afs):
 	# weight = eval(exp_weight["weight_str"])
 
 
+def loadFromGeneralDB(id):
+	__cursor.execute('''SELECT * FROM exp_info WHERE exp_id = :id''', [id])
+	exp_info = __cursor.fetchone()
 
-
+	return  json.loads(exp_info["network_structure_json"]) 
 
 
 
@@ -144,7 +147,7 @@ def saveToGeneralDB(initial_network, trained_network, initial_error_rate, traine
 
 	
 	__cursor.execute('''INSERT INTO exp_info(network_structure_json, initial_parameters_json, initial_error_rate, trained_error_rate, epochs, exp_category, dataset_name, exp_note, records_folder)
-				 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)''', (str(initial_network), str(trained_network), initial_error_rate, trained_error_rate, epochs, exp_category, dataset_name, exp_note, records_folder))
+				 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)''', (json.dumps(initial_network), json.dumps(trained_network), initial_error_rate, trained_error_rate, epochs, exp_category, dataset_name, exp_note, records_folder))
 
 	exp_id = __cursor.lastrowid
 

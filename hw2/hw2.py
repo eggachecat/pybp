@@ -42,9 +42,9 @@ def test(nnConfig, epoch):
 
 	sizeOfLayers = len(nnConfig["layers"])
 
-	timestr = time.strftime("%Y%m%d-%H%M%S")
+	uuid = str(np.random.randint(0, 1000000000))
 	recordDir = os.path.join(os.path.dirname(__file__ ) + "\exp_figures\\")
-	expDir = os.path.join(recordDir + timestr)
+	expDir = os.path.join(recordDir + uuid)
 
 	if not os.path.exists(expDir):
 	    os.makedirs(expDir)
@@ -114,8 +114,6 @@ def test(nnConfig, epoch):
 
 			ctr += 1
 
-	# nnio.saveResultToJson(JsonPath, NN.toJson())
-
 
 
 
@@ -135,8 +133,8 @@ def test(nnConfig, epoch):
 
 	errorRate = calculateErrorRate(NN, dataSet, outputIndex)
 	print(initialErrorRate, errorRate)
-	exp_note = timestr
-	exp_id = nnSQLite.saveToGeneralDB(NN.toDict(), ini_nn_dict, initialErrorRate, errorRate, epoch, "classification", dataset_name, exp_note, timestr)
+	exp_note = uuid
+	exp_id = nnSQLite.saveToGeneralDB(NN.toDict(), ini_nn_dict, initialErrorRate, errorRate, epoch, "classification", dataset_name, exp_note, uuid)
 
 
 def calculateErrorRate(NN, dataSet, outputLayer):
@@ -160,19 +158,17 @@ def calculateErrorRate(NN, dataSet, outputLayer):
 
 
 
-af_types = [("purelin", 1), ("tanh", 1), 15]
+af_types = [("purelin", 1), ("tanh", 1), 10]
 
-
-
-epochs = [2]
-times = 1
-layersBox = [[2, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]]
+epochs = [500, 1000]
+times = 10000
+layersBox = [[2, 8, 7, 6, 5, 4, 3, 2, 1], [2, 7, 6, 5, 4, 3, 2, 1], [2, 6, 5, 4, 3, 2, 1], [2, 5, 4, 3, 2, 1]]
 step = (0.0001, 1)
 
 
-for epoch in epochs:
+for x in range(0, times):
 	for layers in layersBox:
-		for x in range(0, times):
+		for epoch in epochs:
 			nnConfig = {
 				"attRate": step[0],
 				"repRate": step[1],
@@ -181,18 +177,5 @@ for epoch in epochs:
 			}
 			test(nnConfig, epoch)
 
-
-
-# for layers in layersBox:
-# 	for step in stepBox:
-
-# 		nnConfig = {
-# 			"attRate": step[0],
-# 			"repRate": step[1],
-# 			"af_types": af_types,
-# 			"layers": layers
-# 		}
-# 		print(nnConfig)
-# 		test(nnConfig)
 
 nnSQLite.closeDB()
