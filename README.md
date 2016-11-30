@@ -27,7 +27,6 @@ python -m unittest hw2/hw2.py
 均在hw2文件夾下，一個文件是```exp_records.db```, 文件夾是```exp_figures``` 
 
 ### 用法
--------
 
 #### 配置SOMNN
 ``` Python
@@ -82,11 +81,15 @@ for trainLayerIndex in range(1, sizeOfLayers):
 ```
 
 ### 資料庫結構
------
 #### exp_info
-	exp_id	| network_structure_json | initial_parameters_json | initial_error_rate | trained_error_rate | epochs | exp_category | dataset_name | exp_note | records_folder
-	--------|--------------|------------|-------------|---------------|-------------------|------------|------------|------------|------------|
-		id  | 神經網路結構 | 初始的結果 | 初始的錯誤率 | 訓練后錯誤率 | dataset用了多少遍 | 訓練的類別 | 資料集名稱 | 訓練的注釋 | 結果儲存位置
+##### PART_1
+	exp_id	| network_structure_json | initial_parameters_json | initial_error_rate | trained_error_rate
+	--------|--------------|------------|-------------|---------------
+		id  | 神經網路結構 | 初始的結果 | 初始的錯誤率 | 訓練后錯誤率 
+##### PART_2
+	-------------------|------------|------------|------------|------------
+	epochs | exp_category | dataset_name | exp_note | records_folder
+	dataset用了多少遍 | 訓練的類別 | 資料集名稱 | 訓練的注釋 | 結果儲存位置
 
 
 
