@@ -87,8 +87,8 @@ for trainLayerIndex in range(1, sizeOfLayers):
 	--------|--------------|------------|-------------|---------------
 		id  | 神經網路結構 | 初始的結果 | 初始的錯誤率 | 訓練后錯誤率 
 ##### PART_2
-	-------------------|------------|------------|------------|------------
 	epochs | exp_category | dataset_name | exp_note | records_folder
+	------------------|------------|------------|------------|------------
 	dataset用了多少遍 | 訓練的類別 | 資料集名稱 | 訓練的注釋 | 結果儲存位置
 
 
@@ -108,7 +108,6 @@ python -m unittest hw1-load-data.py
 python -m unittest hw1-load-data.py
 
 ### 用法
--------
 
 #### import相關包
 ``` Python
@@ -185,7 +184,6 @@ for i in range(0, len(inputs)):
 ```
 
 ### 資料庫結構
------
 #### exp_info
 	exp_id	|	alpha	|	err_rate	|	layer_info	|	exp_category	|	exp_note
 	--------|:----------|:--------------|---------------|-------------------|--------------
