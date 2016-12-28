@@ -27,11 +27,17 @@ class BPLayer(nn.Layer):
 		
 
 class BackPropagationNeuralNetwork(nn.Network):
+
+	type = "backprogation"
 	
-	def __init__(self, alpha, sizeOfLayers, activationFunctions):
+	def __init__(self, nnConfig):
+
+		activationFunctions = nnaf.generateActivationFunctions(nnConfig["af_types"])
+		sizeOfLayers = nnConfig["layers"]
+
 		nn.Network.__init__(self, sizeOfLayers, activationFunctions)
 
-		self.alpha = alpha
+		self.alpha = nnConfig["alpha"]
 		self.layers = [BPLayer(1, sizeOfLayers[0], activationFunctions[0])]
 		for i in range(1, self.nnDepth):
 			self.layers.append(BPLayer(sizeOfLayers[i - 1], sizeOfLayers[i], activationFunctions[i]))

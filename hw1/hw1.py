@@ -15,6 +15,8 @@ dataFileName = 'hw1data.dat'
 dataFileName = os.path.join(os.path.dirname(__file__), dataFileName)
 SQLiteDB = "exp_records.db"
 SQLiteDB = os.path.join(os.path.dirname(__file__), SQLiteDB)
+nnSQLite.iniSQLite(SQLiteDB)
+
 
 expClassification = "hw1-class-2861"
 alpha = 0.01
@@ -24,19 +26,10 @@ maxAplha = 0.1
 # cycle of data set
 EPOCH = 10
 
-## (1, 2)
-# afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-# layers = [2, 4, 3, 1]
 
-## (3)
-afs = [common.input, common.ac_tanh(1), common.ac_tanh(1), common.ac_tanh(1)]
-layers = [2, 4, 3, 1]
+af_types = [("purelin", 1), ("tanh", 1), 10]
 
-NN = bpnn.init(alpha, layers, afs)
-nnplot.iniGraph(NN, 1)
-nnplot.drawData(np.loadtxt(dataFileName))
 
-nnSQLite.iniSQLite(SQLiteDB)
 ###########################
 
 trainingData, testData = nnio.readTrainingAndTestData(dataFileName, 2, 950)
@@ -48,15 +41,41 @@ data = nnio.readInput(dataFileName, 2)
 test_inputs = data["inputs"]
 test_outputs = data["outputs"]
 
+expCtr = 0;
+
+
+def calculateError(NN, test_inputs, test_outputs):
+	totalError = 0
+	for i in range(0, len(test_inputs)):
+
+		inputVector = np.transpose(np.mat(test_inputs[i]))
+		output = NN.forward(inputVector)
+		teacher = np.transpose(np.mat(test_outputs[i]))
+
+		flag = output * teacher > 0
+
+		if not flag[0, 0]:
+			totalError += 1
+	return totalError
+
 
 while(alpha < maxAplha):
 
-	NN = bpnn.init(alpha, layers, afs)
+
+
+	nnConfig = {
+		"alpha": alpha,
+		"layers": layers,
+		"af_types": af_types
+	}
+
+	NN = bpnn.init(nnConfig)
+	nnplot.iniNeurons(NN)
+
 	totalError = 0
 	recordError = []
 	
 	for k in range(0, EPOCH):
-		totalError = 0
 		for i in range(0, len(inputs)):
 			inputVector = np.transpose(np.mat(inputs[i]))
 			output = NN.forward(inputVector)
@@ -64,19 +83,10 @@ while(alpha < maxAplha):
 			errorVector = teacher - output
 			NN.backPropagation(errorVector)
 		# update every cycle of trainig data
-		nnplot.drawNeuron(NN, 1)
+		nnplot.updateNeuron(NN, 1)
 			
   
-		for i in range(0, len(test_inputs)):
-
-			inputVector = np.transpose(np.mat(test_inputs[i]))
-			output = NN.forward(inputVector)
-			teacher = np.transpose(np.mat(test_outputs[i]))
-
-			flag = output * teacher > 0
-
-			if not flag[0, 0]:
-				totalError += 1
+		totalError = calculateError(NN, test_inputs, test_outputs)
 
 		errorRate = float(totalError/len(test_inputs))
 		recordError.append(errorRate)
@@ -85,28 +95,12 @@ while(alpha < maxAplha):
 		print(exp_note + " at exp_id = " + str(exp_id))
 
 	pl.figure(2)
-	pl.plot(range(1, EPOCH+1), recordError)
+	pl.plot(range(1, EPOCH + 1), recordError, color = expCtr)
 	pl.title('EPOCH - ErrorRate')
 	pl.xlabel('EPOCH')
 	pl.ylabel('error rate')
 
 	alpha += alphaStep
+	expCtr += 1
 
 nnSQLite.closeDB()
-# nnSQLite.iniSQLite("exp_records.db")
-
-# while True:
-# 	id = int(input("id>>"))
-# 	NN = nnSQLite.loadFromDB(id, afs)
-
-# 	while True:
-# 		x = float(input("X>>"))
-# 		y = float(input("Y>>"))
-# 		inputVector = [[x], [y]]
-# 		output = NN.forward(inputVector)
-# 		print("output>>", output)
-# 		c= input("change id ?>>")
-# 		c = str.upper(c)
-# 		if c == "Y" or c == "YES":
-# 			break
-# nnSQLite.closeDB()

@@ -177,3 +177,41 @@ def iniGeneralSQLite(dbPath):
 		createGeneralTable()
 
 
+
+def createDataTable():
+
+	global __conn, __cursor
+
+	try:
+		__cursor.execute('''CREATE TABLE exp_info
+		            (exp_id INTEGER PRIMARY KEY NOT NULL, 
+		            network_structure_json TEXT, initial_parameters_json TEXT,
+		            initial_error_rate REAL, trained_error_rate REAL, epochs INTEGER,
+		            exp_category TEXT, dataset_name TEXT, exp_note TEXT, records_folder TEXT)''')
+
+		__conn.commit()
+	except sqlite3.DatabaseError:
+		print("Tables exists.")
+		pass
+
+
+
+
+
+
+
+def createExperimentTable():
+
+	global __conn, __cursor
+
+	try:
+		__cursor.execute('''CREATE TABLE exp_info
+		            (exp_id INTEGER PRIMARY KEY NOT NULL, 
+		            network_structure_json TEXT, initial_parameters_json TEXT,
+		            initial_error_rate REAL, trained_error_rate REAL, epochs INTEGER,
+		            exp_category TEXT, dataset_name TEXT, exp_note TEXT, records_folder TEXT)''')
+
+		__conn.commit()
+	except sqlite3.DatabaseError:
+		print("Tables exists.")
+		pass

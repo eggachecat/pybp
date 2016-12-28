@@ -37,6 +37,7 @@ class SOMLayer(nn.Layer):
 
 class SelfOrganizingMapNeuralNetwork(nn.Network):
 
+	type = "sir-som"
 
 	def __init__(self, nnConfig):
 
@@ -79,6 +80,44 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 		maxTuple = (0, 0, max)
 		minTuple = (0, 0, min)
 
+		# distanceMatrix = np.zeros((rowNum, colNum), dtype=np.float)
+		for r in range(0, rowNum):
+			for c in range(0, colNum):
+				difference = vector_r[r] - vector_c[c]
+				# distance = np.sum(np.square(difference))
+
+				# hamming distance
+				distance = np.sum(np.absolute(difference))
+				# distanceMatrix[r, c] = np.absolute(distance)
+
+				if(distance > max):
+					max = distance
+					maxTuple = (r, c, max)
+				else :
+					if (distance < min):
+						min = distance
+						minTuple = (r, c, min)
+
+		# logging.debug("\nThe distance matrix is\n")
+		# logging.debug(distanceMatrix)
+
+		return maxTuple, minTuple
+
+	def createRandomDistanceMatrix(self, vector_r, vector_c):
+
+
+		rowNum = len(vector_r)
+		colNum = len(vector_c)
+
+		# logging.debug(vector_r)
+		# logging.debug(vector_c)
+
+		max = float("-inf")
+		min = float("inf")
+
+		maxTuple = (0, 0, max)
+		minTuple = (0, 0, min)
+
 		distanceMatrix = np.zeros((rowNum, colNum), dtype=np.float)
 		for r in range(0, rowNum):
 			for c in range(0, colNum):
@@ -89,18 +128,16 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 				distance = np.sum(np.absolute(difference))
 				distanceMatrix[r, c] = np.absolute(distance)
 
-				if(distance > max):
-					max = distance
-					maxTuple = (r, c, max)
-				else :
-					if (distance < min):
-						min = distance
-						minTuple = (r, c, min)
 
-		logging.debug("\nThe distance matrix is\n")
-		logging.debug(distanceMatrix)
+		# logging.debug("\nThe distance matrix is\n")
+		# logging.debug(distanceMatrix)
 
-		return maxTuple, minTuple
+		r = np.random.randint(0, rowNum)
+		c = np.random.randint(0, colNum)
+		randTuple = (r, c, distanceMatrix[r,c])
+
+
+		return randTuple, randTuple
 
 
 	def toDict(self):
@@ -126,7 +163,7 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 
 
 	# two class
-	def train(self, dataSet, trainLayerIndex):
+	def train(self, dataSet, trainLayerIndex, randomSelection = False):
 
 		# logging.debug("================================================================================================")
 		patterns = dict()
@@ -177,8 +214,10 @@ class SelfOrganizingMapNeuralNetwork(nn.Network):
 
 			logging.debug("for key: %d, %d", keys[0], keys[1])
 
-			distanceTuple = self.createDistanceMatrix(patterns[keys[0]], patterns[keys[1]])
-
+			if not randomSelection:
+				distanceTuple = self.createDistanceMatrix(patterns[keys[0]], patterns[keys[1]])
+			else:
+				distanceTuple = self.createRandomDistanceMatrix(patterns[keys[0]], patterns[keys[1]])
 
 			the_same_category = (keys[0] == keys[1])
 			# logging.debug(keys[0], keys[1])

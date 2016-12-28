@@ -7,8 +7,6 @@ import numpy as np
 global __global_X 
 global __global_lines
 
-global __shuffle_colors
-
 __shuffle_colors = [
         "#000000", "#FFFF00", "#1CE6FF", "#FF34FF", "#FF4A46", "#008941", "#006FA6", "#A30059",
         "#6A3A4C", "#7A4900", "#0000A6", "#63FFAC", "#B79762", "#004D43", "#8FB0FF", "#997D87",
@@ -119,12 +117,16 @@ def drawNeuron(NN, layerNumber):
 
 	pl.pause(0.00001)
 
-def iniGraph(NN, layerNumber, ion = True, axis = [-2, 2, -2, 2], step = 0.05, lineStyle=["r--", "g--", "b--", "y--", "m--", "c--", "k--", "r--"]):
+
+def iniNeurons(NN, 
+	layerNumber = 1, 
+	ion = True, 
+	axis = [-2, 2, -2, 2], 
+	step = 0.05, 
+	lineStyle=["r--", "g--", "b--", "y--", "m--", "c--", "k--", "r--"]):
 	
 	global __global_X
 	global __global_lines
-
-	global __shuffle_colors 
 
 	__global_X = []
 	__global_lines = dict()
@@ -143,6 +145,38 @@ def iniGraph(NN, layerNumber, ion = True, axis = [-2, 2, -2, 2], step = 0.05, li
 	__global_X = np.arange(axis[0], axis[1], step)
 
 	# init lines
-	# for i in range(0, numberOfLines):
-	# 	__global_lines[i], = ax.plot(__global_X, __global_X, lineStyle[i])
+	for i in range(0, numberOfLines):
+		__global_lines[i], = ax.plot(__global_X, __global_X, lineStyle[i])
+
+
+# set ion False to hide figures
+def iniGraph(NN, 
+	layerNumber = 1, 
+	ion = True, 
+	axis = [-2, 2, -2, 2], 
+	step = 0.05, 
+	lineStyle=["r--", "g--", "b--", "y--", "m--", "c--", "k--", "r--"]):
+	
+	global __global_X
+	global __global_lines
+
+	__global_X = []
+	__global_lines = dict()
+	# init graph
+
+	if ion:
+		pl.ion()
+		ax = pl.gca()
+		pl.axis(axis)
+
+	target = NN.layers[layerNumber]
+	weight = target.weight
+
+	numberOfLines = weight.shape[0]
+
+	__global_X = np.arange(axis[0], axis[1], step)
+
+	# init lines
+	for i in range(0, numberOfLines):
+		__global_lines[i], = ax.plot(__global_X, __global_X, lineStyle[i])
 
