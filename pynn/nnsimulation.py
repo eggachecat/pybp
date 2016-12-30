@@ -7,12 +7,12 @@ import matplotlib.lines as lines
 
 class CartPole():
 
-	CART_LEVEL = 1.0
+	CART_LEVEL = 0.0
 	CART_WIDTH = 2.0
 	CART_HEIGHT = 1.0
 	POLE_HEIGHT = CART_LEVEL + CART_HEIGHT
 	"""docstring for CartPole"""
-	def __init__(self, config):
+	def __init__(self, config, beta = 0.001):
 		self.g = config["acceleration_of_gravity"]
 		self.m_c = config["mass_of_cart"]
 		self.m_p = config["mass_of_pole"]
@@ -23,18 +23,23 @@ class CartPole():
 		# half length of pole
 		self.hl = config["half_length_of_pole"]
 		self.f = config["force"]
+		self.beta = beta
 
 		self.iniState()		
 		self.iniFigure()
 		
-		
-		# self.ax.set_autoscaley_on(True)
+	
+	def reset(self):
+		self.iniState()
+		self.setCart(self.x)
+		self.setPole(self.x, self.theta)
+
 	def iniState(self):
 
-		self.v_theta = 0
-		self.theta = 0
-		self.x = 0
-		self.v_x = 0
+		self.v_theta = self.beta * np.random.random_sample()
+		self.theta = self.beta * np.random.random_sample()
+		self.x = self.beta * np.random.random_sample()
+		self.v_x = self.beta * np.random.random_sample()
 
 	def iniFigure(self):
 
@@ -50,13 +55,23 @@ class CartPole():
 		self.draw()
 
 
-	def update(self):
+	def getState(self):
+		return {
+			"x": self.x,
+			"v_x": self.v_x,
+			"theta": self.theta,
+			"v_theta": self.v_theta
+		}
+
+	def update(self, direction = 1):
+
+
 
 		acceleration_of_theta =((self.m * self.g * np.sin(self.theta) - 
-			np.cos(self.theta) * (self.f + self.m_p * self.hl * np.power(self.v_theta, 2) * np.sin(self.theta))) /
+			np.cos(self.theta) * (direction * self.f + self.m_p * self.hl * np.power(self.v_theta, 2) * np.sin(self.theta))) /
 					 ((4/3) * self.m * self.hl - self.m_p * self.hl * np.power(np.cos(self.theta), 2)))
 
-		acceleration_of_x = (self.f + self.m_p * self.hl * (np.power(self.v_theta, 2) * np.sin(self.theta) - acceleration_of_theta * np.cos(self.theta))) / self.m;
+		acceleration_of_x = (direction * self.f + self.m_p * self.hl * (np.power(self.v_theta, 2) * np.sin(self.theta) - acceleration_of_theta * np.cos(self.theta))) / self.m;
 
 
 		self.v_theta += acceleration_of_theta * self.t
@@ -69,7 +84,8 @@ class CartPole():
 		self.setPole(self.x, self.theta)
 
 	def setPole(self, x, theta):
-		self.pole = lines.Line2D([x, x + np.cos(np.pi/2 - theta)], [self.POLE_HEIGHT, self.POLE_HEIGHT + np.sin(np.pi/2 - theta)])
+		self.pole = lines.Line2D([x, x + np.cos(np.pi/2 - theta)], 
+			[self.POLE_HEIGHT, self.POLE_HEIGHT + np.sin(np.pi/2 - theta)], color="red", lw=1.5)
 
 	def setCart(self, x):
 		self.cart = patches.Rectangle((x - self.CART_WIDTH / 2, self.CART_LEVEL), self.CART_WIDTH, self.CART_HEIGHT)
