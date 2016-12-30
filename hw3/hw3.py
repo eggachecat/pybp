@@ -9,12 +9,12 @@ config = {
 	"acceleration_of_gravity": 9.8,
 	"mass_of_cart": 1,
 	"mass_of_pole": 0.1,
-	"update_time_interval": 0.2,
+	"update_time_interval": 0.02,
 	"half_length_of_pole": 0.5,
-	"force": 1
+	"force": 10
 }
 
-cp = nnsimulation.CartPole(config)
+cp = nnsimulation.CartPole(config, figure = False, beta = 0)
 
 
 degree_thershold = np.pi / 180
@@ -56,32 +56,37 @@ STATES_PARTITION = {
 	}
 }
 
-actionSet = [-1, 1]
+actionSet = [1, -1]
 
 greek = {
 	"alpha": 0.5,
 	"beta": 0.5,
 	"gamma": 0.5,
-	"theta": 0.01
+	"delta": 0.0
 }
 
 r = pyr.ReinforecementNeuralNetwork(["x", "v_x", "theta", "v_theta"], STATES_PARTITION, FAILURE_STATES_PARTITION, actionSet, greek)
-
-action = r.getAction()
 
 
 # print(r.getBox())
 
 success = 0
+trail = 0
+
+best = 0
 
 while True:
 
 	# draw cart
-	cp.draw()
-	success += 1
+	# cp.draw()
+	
 
 	# get direction from reinforecement neural network
-	action = r.getAction()
+	action = r.get_action()
+
+	cartPoleState = cp.getState()
+	print(cartPoleState)
+	print("action is ", action)
 
 	direction = action
 
@@ -89,19 +94,29 @@ while True:
 
 	cartPoleState = cp.getState()
 	r.setState(cartPoleState)
+	print(cartPoleState)
 
 	if r.ifFailed():
 
 		cp.reset()
 		cartPoleState = cp.getState()
-		r.setState(cartPoleState)
+		# r.setState(cartPoleState)
+		trail += 1
 
-		print("Failed at Trail %d" % (success))
+		print("stat %d trail:%d" % (trail, success))
+
+		# if success > best:
+		# 	best = success
+
+		# 	print("best %d at Trail %d" % (success, trail))
+
 		success = 0
 		# print(r.qval)
 		input("input>>")
+	else:
+		success += 1
 
-
+	print("")
 
 # state = {
 # 	"x": -2.9,

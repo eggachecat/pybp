@@ -1,5 +1,5 @@
 import numpy as np
-
+import copy
 
 
 
@@ -20,7 +20,7 @@ class ReinforecementNeuralNetwork():
 		self.actionSet = actionSet		
 		self.iniAction(beginAction)
 
-		self.qval = np.zeros((self.totalBoxes, len(actionSet)), dtype = float)
+		self.qval = np.zeros((1 + self.totalBoxes, len(actionSet)), dtype = float)
 
 		# learning rate
 		self.alpha = greek["alpha"]
@@ -32,7 +32,7 @@ class ReinforecementNeuralNetwork():
 		self.gamma = greek["gamma"]
 
 		# magnitude of noise added to choice 
-		self.theta = greek["theta"]
+		self.delta = greek["delta"]
 
 		# self.reinf = reinf
 
@@ -50,14 +50,12 @@ class ReinforecementNeuralNetwork():
 		rowIndex = self.getBox(state)
 		colIndex = self.__actionColumnMap[action]
 
-		print("set[%d, %d] = %f" % (rowIndex, colIndex, newVal))
-
-
+		
 		self.qval[rowIndex, colIndex] = newVal
 
 	# choose action with max Q value give state
 	def chooseMaxQvalue(self, state):
-		maxQ = 0
+		maxQ = -np.inf
 		for action in self.actionSet:
 			trail = self.Qvalue(state, action)
 			if maxQ < trail:
@@ -67,10 +65,10 @@ class ReinforecementNeuralNetwork():
 
 	def chooseAction(self, state, withNoise = False):
 
-		maxQ = 0
+		maxQ = -np.inf
 		optimalAction = self.actionSet[0]
 		for action in self.actionSet:
-			trail = self.Qvalue(state, action) + int(withNoise) * self.theta * np.random.random_sample()
+			trail = self.Qvalue(state, action) + int(withNoise) * self.delta * np.random.random_sample()
 			if maxQ < trail:
 				maxQ = trail
 				optimalAction = action
@@ -117,8 +115,8 @@ class ReinforecementNeuralNetwork():
 
 	def setState(self, state):
 
-		self.preState = self.state
-		self.preAction = self.action
+		self.preState = copy.deepcopy(self.state)
+		self.preAction = copy.deepcopy(self.action)
 
 		for sv in self.svs:
 			self.state[sv] = state[sv]
@@ -157,7 +155,7 @@ class ReinforecementNeuralNetwork():
 		else:
 			return self.getStateBox(state)
 
-	def getAction(self, reward = 0):
+	def get_action(self, reward = 0):
 
 		# self.preState = self.state
 		# self.preAction = self.action
@@ -172,6 +170,8 @@ class ReinforecementNeuralNetwork():
 		
 			# (1-alpha)*q + alpha*(r + gamma * max(q))
 			newQvalue = (1 - self.alpha) * self.Qvalue(self.preState, self.preAction) + self.alpha * (reward + self.gamma * predicted_value)
+
+			# print("not failed: set[%d, %d] = %f" % (self.getBox(self.preState), self.preAction, newQvalue))
 			self.updateQvalue(self.preState, self.preAction, newQvalue)
 		else:
 			pass
@@ -185,6 +185,8 @@ class ReinforecementNeuralNetwork():
 
 		predicted_value = 0
 		newQvalue = (1 - self.alpha) * self.Qvalue(self.preState, self.preAction) + self.alpha * (punish + self.gamma * predicted_value)
+
+		# print("failed: set[%d, %d] = %f" % (self.getBox(self.preState), self.preAction, newQvalue))
 		self.updateQvalue(self.preState, self.preAction, newQvalue)
 
 		# if self.Q_VALUES(self.state, 1) + (rand * BETA) <= self.Q_VALUES(self.state, 2):
@@ -195,11 +197,13 @@ class ReinforecementNeuralNetwork():
 	# if state failed
 	def ifFailed(self, punish = -1):
 
-		print("current state:", self.state)
+		# print("current state:", self.state)
 
 		self.box = self.getBox(self.state)
 
-		print(self.box)
+		# print(self.preState, self.state)
+
+		# print(self.box)
 
 		# current state failed
 		if self.box < 0:

@@ -12,7 +12,7 @@ class CartPole():
 	CART_HEIGHT = 1.0
 	POLE_HEIGHT = CART_LEVEL + CART_HEIGHT
 	"""docstring for CartPole"""
-	def __init__(self, config, beta = 0.001):
+	def __init__(self, config, figure = False, beta = 0.01):
 		self.g = config["acceleration_of_gravity"]
 		self.m_c = config["mass_of_cart"]
 		self.m_p = config["mass_of_pole"]
@@ -25,8 +25,10 @@ class CartPole():
 		self.f = config["force"]
 		self.beta = beta
 
-		self.iniState()		
-		self.iniFigure()
+		self.iniState()
+
+		if figure:	
+			self.iniFigure()
 		
 	
 	def reset(self):
@@ -47,8 +49,8 @@ class CartPole():
 		self.setPole(0, 0)
 		self.fig = pl.figure()
 		self.ax = self.fig.add_subplot(111, aspect='equal')
-		self.ax.set_xlim([-10, 10])
-		self.ax.set_ylim([0, 10])
+		self.ax.set_xlim([-3, 3])
+		self.ax.set_ylim([0, 3])
 
 		# self.ax.add_patch(self.cart)
 		# self.ax.add_line(self.pole)
@@ -79,6 +81,9 @@ class CartPole():
 
 		self.theta += self.v_theta * self.t
 		self.x += self.v_x * self.t
+
+
+		print(acceleration_of_theta, acceleration_of_x)
 
 		self.setCart(self.x)
 		self.setPole(self.x, self.theta)
