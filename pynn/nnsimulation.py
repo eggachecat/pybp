@@ -8,8 +8,8 @@ import matplotlib.lines as lines
 class CartPole():
 
 	CART_LEVEL = 0.0
-	CART_WIDTH = 2.0
-	CART_HEIGHT = 1.0
+	CART_WIDTH = 0.5
+	CART_HEIGHT = 0.3
 	POLE_HEIGHT = CART_LEVEL + CART_HEIGHT
 	"""docstring for CartPole"""
 	def __init__(self, config, figure = False, beta = 0.01):
@@ -83,7 +83,7 @@ class CartPole():
 		self.x += self.v_x * self.t
 
 
-		print(acceleration_of_theta, acceleration_of_x)
+		# print(acceleration_of_theta, acceleration_of_x)
 
 		self.setCart(self.x)
 		self.setPole(self.x, self.theta)

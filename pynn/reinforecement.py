@@ -3,6 +3,52 @@ import copy
 
 
 
+class ACE():
+	def __init__(self, boxNum, greek):
+
+		self.mvx = np.zeros((boxNum, 1))
+		self.v = np.zeros((boxNum, 1))
+
+		self.predict = 0
+		self.prePredict = 0
+
+
+		# discount factor for future reinf
+		self.gamma = greek["gamma"]
+
+		self.beta = greek["beta"]
+
+		# trace decay rate
+		self.eta = greek["eta"]
+
+	def update(self):
+		pass
+
+	def updatePredict(self, x):
+
+		self.prePredict = copy.deepcopy(self.predict)
+		self.predict = np.dot(np.transpose(self.v), x)
+
+	def updateVvalue(self, reinf):
+
+		self.v += self.beta * (reinf + self.gamma * self.predict - self.prePredict)
+
+	def updateMovingAverageX(self, x):
+
+		self.mvx = self.eta * self.mvx + (1 - self.eta) * x
+
+	def reinforce(self, x, reinf):
+
+		self.updatePredict(x)
+		self.updateVvalue(reinf)
+		self.updateMovingAverageX(x)
+
+
+		# print("mvx", self.mvx)
+		# print("vvalue", self.v)
+
+		return reinf + self.gamma * self.predict - self.prePredict
+
 class ReinforecementNeuralNetwork():
 
 	def __init__(self, svs, statesPartiton, failureStatesPartitions, actionSet, greek, beginState = None, beginAction = None):
@@ -20,7 +66,8 @@ class ReinforecementNeuralNetwork():
 		self.actionSet = actionSet		
 		self.iniAction(beginAction)
 
-		self.qval = np.zeros((1 + self.totalBoxes, len(actionSet)), dtype = float)
+		self.qval = np.zeros((self.totalBoxes, len(actionSet)), dtype = float)
+		# self.vval = np.zeros((self.totalBoxes, len(actionSet)), dtype = float)
 
 		# learning rate
 		self.alpha = greek["alpha"]
@@ -33,6 +80,10 @@ class ReinforecementNeuralNetwork():
 
 		# magnitude of noise added to choice 
 		self.delta = greek["delta"]
+
+		self.boxVector = np.zeros((self.totalBoxes, 1), dtype = float)
+
+		self.ace = ACE(self.totalBoxes, greek)
 
 		# self.reinf = reinf
 
@@ -121,6 +172,13 @@ class ReinforecementNeuralNetwork():
 		for sv in self.svs:
 			self.state[sv] = state[sv]
 
+		# new box-vector
+		self.boxVector.fill(0)
+
+		self.box = self.getBox(self.state)
+		if not self.box < 0:
+			self.boxVector[self.box, 0] = 1
+
 
 	def getBoxValue(self, partitions, state):
 
@@ -140,13 +198,13 @@ class ReinforecementNeuralNetwork():
 					_boxValue += base * int(box)
 					break;
 
-		return _boxValue
+		return _boxValue - 1
 
 	def getStateBox(self, state):
 		return self.getBoxValue(self.statesPartiton, state)
 
 	def isFailed(self, state):
-		return self.getBoxValue(self.failureStatesPartitions, state) < 0
+		return self.getBoxValue(self.failureStatesPartitions, state) < -1
 
 	def getBox(self, state):
 
@@ -184,6 +242,8 @@ class ReinforecementNeuralNetwork():
 	def failed_update(self, punish = -1):
 
 		predicted_value = 0
+
+		# (1-alpha)*q + alpha*(r + gamma * max(q))
 		newQvalue = (1 - self.alpha) * self.Qvalue(self.preState, self.preAction) + self.alpha * (punish + self.gamma * predicted_value)
 
 		# print("failed: set[%d, %d] = %f" % (self.getBox(self.preState), self.preAction, newQvalue))
@@ -212,6 +272,76 @@ class ReinforecementNeuralNetwork():
 
 		return False
 
+
+	def ace_ifFailed(self, punish = -1):
+
+		# print("current state:", self.state)
+
+		self.box = self.getBox(self.state)
+
+		# print(self.preState, self.state)
+
+		# print(self.box)
+
+		# current state failed
+		if self.box < 0:
+			self.ace_failed_update(punish)
+			return True
+
+		return False
+
+
+	# the state value function no-longer be the max(Q)
+	# insread, it follows the equation : predict_value = V(S_t+1) = 
+	def ace_get_action(self, reward = 0):
+
+		# self.preState = self.state
+		# self.preAction = self.action
+
+		self.box = self.getBox(self.state)
+
+		if self.getBox(self.preState) > 0:
+			if self.box < 0:
+				predicted_value = 0
+			else:
+				predicted_value = self.chooseMaxQvalue(self.state)
+
+			# reward = self.ace.reinforce(x, -1)
+
+			reward = self.ace.reinforce(self.boxVector, 0)
+
+			# if not reward == 0:
+			# 	print("get_action reward: ", reward)
+
+		
+			# (1-alpha)*q + alpha*(r + gamma * max(q))
+			newQvalue = (1 - self.alpha) * self.Qvalue(self.preState, self.preAction) + self.alpha * (reward + self.gamma * predicted_value)
+
+			# print("not failed: set[%d, %d] = %f" % (self.getBox(self.preState), self.preAction, newQvalue))
+			self.updateQvalue(self.preState, self.preAction, newQvalue)
+		else:
+			pass
+
+
+		self.action = self.chooseAction(self.state, withNoise = True)
+
+		return self.action
+
+	def ace_failed_update(self, punish = -1):
+
+		predicted_value = 0
+
+
+		reward = self.ace.reinforce(self.boxVector, -1)
+
+		# if not reward == 0:
+		# 	print("ace_failed_update reward: ", reward)
+
+
+		newQvalue = (1 - self.alpha) * self.Qvalue(self.preState, self.preAction) + self.alpha * (punish + self.gamma * predicted_value)
+
+		# print("failed: set[%d, %d] = %f" % (self.getBox(self.preState), self.preAction, newQvalue))
+		self.updateQvalue(self.preState, self.preAction, newQvalue)
 
 
 

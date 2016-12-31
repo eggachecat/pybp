@@ -117,6 +117,11 @@ def loadFromGeneralDB(id):
 
 	return  json.loads(exp_info["network_structure_json"]) 
 
+def selectFromGeneralDB(sql):
+	__cursor.execute(sql)
+	exp_info = __cursor.fetchone()
+
+	return  json.loads(exp_info["initial_parameters_json"]) 
 
 
 

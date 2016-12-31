@@ -68,16 +68,27 @@ expCat = ["ase", "ace"]
 
 
 
+greek = {
+			"alpha": 0.5,
+			"beta": 0.5,
+			"gamma": 0.95,
+			"eta": 0.8,
+			"delta": 0.01
+		}
+
+
 def ase(totalTrails, greek):
 	steps = []
 	success = 0
 	trail = 0
 
 	r = pyr.ReinforecementNeuralNetwork(["x", "v_x", "theta", "v_theta"], STATES_PARTITION, FAILURE_STATES_PARTITION, actionSet, greek)
-	cp = nnsimulation.CartPole(config, figure = False, beta=greek["delta"])
+	cp = nnsimulation.CartPole(config, figure = True, beta=greek["delta"])
 
 
 	while trail < totalTrails:
+		cp.draw()
+
 
 		action = r.get_action()
 		direction = action
@@ -107,10 +118,12 @@ def ace(totalTrails, greek):
 	trail = 0
 
 	r = pyr.ReinforecementNeuralNetwork(["x", "v_x", "theta", "v_theta"], STATES_PARTITION, FAILURE_STATES_PARTITION, actionSet, greek)
-	cp = nnsimulation.CartPole(config, figure = False,  beta=greek["delta"])
+	cp = nnsimulation.CartPole(config, figure = True,  beta=greek["delta"])
 
 
 	while trail < totalTrails:
+
+		cp.draw()
 		action = r.ace_get_action()
 		direction = action
 		cp.update(direction)
@@ -136,111 +149,6 @@ def ace(totalTrails, greek):
 
 
 
-etas = [0.1, 0.5, 0.9]
-deltas = [0, 0.001, 0.01]
+ace(totalTrails, greek)
 
 
-for eta in etas:
-	for delta in deltas:
-		greek = {
-			"alpha": 0.5,
-			"beta": 0.5,
-			"gamma": 0.95,
-			"eta": eta,
-			"delta": delta
-		}
-
-
-		for x in range(1, 10):
-			ace(totalTrails, greek)
-			ase(totalTrails, greek)
-			print(x)
-
-
-
-
-# # print(r.getBox())
-
-# success = 0
-# trail = 0
-
-# best = 0
-
-# while True:
-
-# 	# draw cart
-# 	# cp.draw()
-	
-
-# 	# get direction from reinforecement neural network
-# 	action = r.get_action()
-
-# 	cartPoleState = cp.getState()
-# 	# print(cartPoleState)
-# 	# print("action is ", action)
-
-# 	direction = action
-
-# 	cp.update(direction)
-
-# 	cartPoleState = cp.getState()
-# 	r.setState(cartPoleState)
-# 	# print(cartPoleState)
-
-# 	if r.ifFailed():
-
-# 		cp.reset()
-# 		cartPoleState = cp.getState()
-# 		# r.setState(cartPoleState)
-# 		trail += 1
-
-# 		print("stat %d trail:%d" % (trail, success))
-
-# 		# if success > best:
-# 		# 	best = success
-
-# 		# 	print("best %d at Trail %d" % (success, trail))
-
-# 		nnSQLite.saveToGeneralDB("", str(greek), 0, success, 1, "reinforement", "", "without ace and noise", trail)
-
-# 		success = 0
-# 		# print(r.qval)
-# 		# input("input>>")
-# 	else:
-# 		success += 1
-
-# 	# print("")
-
-# # state = {
-# # 	"x": -2.9,
-# # 	"v_x": 2.3,
-# # 	"theta": 0.02,
-# # 	"v_theta": 0.6
-# # }
-
-# # r.setState(state)
-
-# # print(r.getBox())
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # randomX = 6 * np.random.random_sample((200,)) - 3
-# # randomV_X = 2 * np.random.random_sample((200,)) - 1
-# # randomT = (1.57 / 2) * (2 * np.random.random_sample((200,)) - 1)
-# # randomV_T = 1.57 * (2 * np.random.random_sample((200,)) - 1)
-
-# # for i in range(0, randomX.size):
-# # 	config = {
-# # 			"x": randomX[i], "v_x": randomV_X[i], "theta": randomT[i], "v_theta": randomV_T[i]
-# 		}
-# 	print(config, r.getBox(config))
